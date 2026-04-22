@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @State private var title = ""
     @State private var secretText = ""
     @State private var items: [VaultItem] = []
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
@@ -28,7 +30,17 @@ struct ContentView: View {
                     TextField("Hemlig text", text: $secretText)
                         .textFieldStyle(.roundedBorder)
                     Button("Spara") {
-                        print("TODO: Spara till SwiftData")
+                        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                              !secretText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                            return
+                        }
+
+                        let newItem = VaultItem(title: title, secretText: secretText)
+                        modelContext.insert(newItem)
+                        items.append(newItem)
+
+                        title = ""
+                        secretText = ""
                     }
                     .buttonStyle(.borderedProminent)
                 }

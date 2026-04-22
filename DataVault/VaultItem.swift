@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-// Skalet innan ni lägger till makrot
+@Model
 final class VaultItem: Identifiable {
     var id = UUID()
     var title: String
