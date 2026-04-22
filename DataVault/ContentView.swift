@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var secretText = ""
     @Query private var items: [VaultItem]
     @Environment(\.modelContext) private var modelContext
-
+    
     var body: some View {
         NavigationStack {
             if items.isEmpty {
@@ -23,44 +23,54 @@ struct ContentView: View {
                     description: Text("Lägg till din första hemlighet")
                 )
             } else {
-                List(items) { item in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.title).font(.headline)
-                        Text(item.secretText)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                List {
+                    ForEach(items) { item in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.title).font(.headline)
+                            Text(item.secretText)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .onDelete(perform: deleteItems)
                 }
             }
         }
         .navigationTitle("Data Vault")
-            
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 8) {
-                    TextField("Titel", text: $title)
-                        .textFieldStyle(.roundedBorder)
-                    TextField("Hemlig text", text: $secretText)
-                        .textFieldStyle(.roundedBorder)
-                    Button("Spara") {
-                        guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                              !secretText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                            return
-                        }
-
-                        let newItem = VaultItem(title: title, secretText: secretText)
-                        modelContext.insert(newItem)
-                        //items.append(newItem)
-
-                        title = ""
-                        secretText = ""
+        
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 8) {
+                TextField("Titel", text: $title)
+                    .textFieldStyle(.roundedBorder)
+                TextField("Hemlig text", text: $secretText)
+                    .textFieldStyle(.roundedBorder)
+                Button("Spara") {
+                    guard !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                          !secretText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                        return
                     }
-                    .buttonStyle(.borderedProminent)
+                    
+                    let newItem = VaultItem(title: title, secretText: secretText)
+                    modelContext.insert(newItem)
+                    //items.append(newItem)
+                    
+                    title = ""
+                    secretText = ""
                 }
-                .padding()
-                .background(.thinMaterial)
+                .buttonStyle(.borderedProminent)
             }
+            .padding()
+            .background(.thinMaterial)
         }
     }
+
+    private func deleteItems(at offsets: IndexSet) {
+        for index in offsets {
+            let item = items[index]
+            modelContext.delete(item)
+        }
+    }
+}
 
 #Preview {
     ContentView()
