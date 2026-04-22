@@ -9,9 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @State private var selectedItem: VaultItem?
+    @State private var editTitle = ""
+    @State private var editSecretText = ""
+    @State private var isShowingEditSheet = false
     @State private var title = ""
     @State private var secretText = ""
-    @Query private var items: [VaultItem]
+    @Query(sort: \VaultItem.createdAt, order: .reverse)
+    private var items: [VaultItem]
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
@@ -31,12 +36,41 @@ struct ContentView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
+                        .onTapGesture {
+                            selectedItem = item
+                            editTitle = item.title
+                            editSecretText = item.secretText
+                            isShowingEditSheet = true
+                        }
                     }
                     .onDelete(perform: deleteItems)
                 }
             }
         }
         .navigationTitle("Data Vault")
+        .sheet(isPresented: $isShowingEditSheet) {
+            VStack(spacing: 12) {
+                Text("Redigera")
+                    .font(.headline)
+
+                TextField("Titel", text: $editTitle)
+                    .textFieldStyle(.roundedBorder)
+
+                TextField("Hemlig text", text: $editSecretText)
+                    .textFieldStyle(.roundedBorder)
+
+                Button("Spara ändringar") {
+                    guard let item = selectedItem else { return }
+
+                    item.title = editTitle
+                    item.secretText = editSecretText
+
+                    isShowingEditSheet = false
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding()
+        }
         
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 8) {
@@ -52,7 +86,6 @@ struct ContentView: View {
                     
                     let newItem = VaultItem(title: title, secretText: secretText)
                     modelContext.insert(newItem)
-                    //items.append(newItem)
                     
                     title = ""
                     secretText = ""

@@ -19,5 +19,6 @@ final class VaultItem: Identifiable {
         self.title = title
         self.secretText = secretText
         self.createdAt = Date()
+        
     }
 }
