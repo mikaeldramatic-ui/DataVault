@@ -11,18 +11,30 @@ import SwiftData
 struct ContentView: View {
     @State private var title = ""
     @State private var secretText = ""
-    @State private var items: [VaultItem] = []
+    @Query private var items: [VaultItem]
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         NavigationStack {
-            List(items) { item in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.title).font(.headline)
-                    Text(item.secretText).font(.subheadline).foregroundStyle(.secondary)
+            if items.isEmpty {
+                ContentUnavailableView(
+                    "Inget i valvet",
+                    systemImage: "tray",
+                    description: Text("Lägg till din första hemlighet")
+                )
+            } else {
+                List(items) { item in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.title).font(.headline)
+                        Text(item.secretText)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
-            .navigationTitle("Data Vault")
+        }
+        .navigationTitle("Data Vault")
+            
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 8) {
                     TextField("Titel", text: $title)
@@ -37,7 +49,7 @@ struct ContentView: View {
 
                         let newItem = VaultItem(title: title, secretText: secretText)
                         modelContext.insert(newItem)
-                        items.append(newItem)
+                        //items.append(newItem)
 
                         title = ""
                         secretText = ""
@@ -49,7 +61,6 @@ struct ContentView: View {
             }
         }
     }
-}
 
 #Preview {
     ContentView()
