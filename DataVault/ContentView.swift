@@ -15,9 +15,22 @@ struct ContentView: View {
     @State private var isShowingEditSheet = false
     @State private var title = ""
     @State private var secretText = ""
-    @Query(sort: \VaultItem.createdAt, order: .reverse)
-    private var items: [VaultItem]
+    @State private var searchText = ""
+    @Query private var items: [VaultItem]
     @Environment(\.modelContext) private var modelContext
+    
+    private var filteredItems: [VaultItem] {
+        let trimmedSearchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedSearchText.isEmpty else {
+            return items
+        }
+
+        return items.filter { item in
+            item.title.localizedCaseInsensitiveContains(trimmedSearchText) ||
+            item.secretText.localizedCaseInsensitiveContains(trimmedSearchText)
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -27,9 +40,11 @@ struct ContentView: View {
                     systemImage: "tray",
                     description: Text("Lägg till din första hemlighet")
                 )
+            } else if filteredItems.isEmpty {
+                ContentUnavailableView.search(text: searchText)
             } else {
                 List {
-                    ForEach(items) { item in
+                    ForEach(filteredItems) { item in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(item.title).font(.headline)
                             Text(item.secretText)
@@ -48,6 +63,12 @@ struct ContentView: View {
             }
         }
         .navigationTitle("Data Vault")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(
+            text: $searchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: "Sök titel eller hemlig text"
+        )
         .sheet(isPresented: $isShowingEditSheet) {
             VStack(spacing: 12) {
                 Text("Redigera")
@@ -99,7 +120,7 @@ struct ContentView: View {
 
     private func deleteItems(at offsets: IndexSet) {
         for index in offsets {
-            let item = items[index]
+            let item = filteredItems[index]
             modelContext.delete(item)
         }
     }
